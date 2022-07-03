@@ -1,5 +1,5 @@
 ARG VARIANT=latest
-FROM thommyho1988/base-cpp-cross-dev-gcc9-armv7hf:${VARIANT}
+FROM thommyho1988/base-cpp-cross-dev-gcc9-armv8:${VARIANT}
 
 USER root
 # [Optional] Install CMake version different from what base image has already installed. 

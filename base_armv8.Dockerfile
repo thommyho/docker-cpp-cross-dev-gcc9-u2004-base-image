@@ -7,6 +7,7 @@ ARG CONAN_VERSION=1.49.0
 ARG USER_UID=1001
 ARG USER_GID=$USER_UID
 ENV HOME=/home/${USERNAME}
+ENV DOCKER_BUILDKIT=1
 
 ENV CC=aarch64-linux-gnu-gcc-9 \
     CXX=aarch64-linux-gnu-g++-9 \
@@ -35,6 +36,7 @@ USER root
 COPY script-library/common-debian.sh \
     script-library/git-lfs-debian.sh \
     script-library/git-flow-debian.sh \
+    script-library/docker-in-docker-debian.sh \
     script-library/install-additional-debian.sh \
     /tmp/library-scripts/
 
@@ -44,7 +46,8 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && bash /tmp/library-scripts/install-additional-debian.sh "${ADDITIONAL_PACKAGES}" \
     && bash /tmp/library-scripts/git-lfs-debian.sh \
     && bash /tmp/library-scripts/git-flow-debian.sh "/usr/local" "gitflow" "https://github.com/petervanderdoes/gitflow-avh.git" "install" "stable" \
-      && sudo update-alternatives --install /usr/bin/aarch64-linux-gnu-gcc aarch64-linux-gnu-gcc /usr/bin/aarch64-linux-gnu-gcc-9 100 \
+    && /bin/bash /tmp/library-scripts/docker-in-docker-debian.sh \
+    && sudo update-alternatives --install /usr/bin/aarch64-linux-gnu-gcc aarch64-linux-gnu-gcc /usr/bin/aarch64-linux-gnu-gcc-9 100 \
     && sudo update-alternatives --install /usr/bin/aarch64-linux-gnu-g++ aarch64-linux-gnu-g++ /usr/bin/aarch64-linux-gnu-g++-9 100 \
     && sudo update-alternatives --install /usr/bin/aarch64-linux-gnu-gcov aarch64-linux-gnu-gcov /usr/bin/aarch64-linux-gnu-gcov-9 100 \
     && sudo update-alternatives --install /usr/bin/aarch64-linux-gnu-gcov-dump aarch64-linux-gnu-gcov-dump /usr/bin/aarch64-linux-gnu-gcov-dump-9 100 \
@@ -72,9 +75,10 @@ RUN touch /root/.z /home/vscode/.z \
     && sed -i -r 's/^(plugins=)\(([a-z \-]+)\)/\1\(\2 git-flow-completion conda-zsh-completion zsh-autosuggestions z\)/g' /root/.zshrc
 
 USER ${USERNAME}
+
+VOLUME [ "/var/lib/docker" ]
 # Setting the ENTRYPOINT to docker-init.sh will configure non-root access to
 # the Docker socket if "overrideCommand": false is set in devcontainer.json.
 # The script will also execute CMD if you need to alter startup behaviors.
-# ENTRYPOINT [ "/usr/bin/tini", "--", "/usr/local/share/docker-init.sh" ]
-
+ENTRYPOINT [ "/usr/bin/tini", "--", "/usr/local/share/docker-init.sh" ]
 CMD [ "sleep", "infinity" ]

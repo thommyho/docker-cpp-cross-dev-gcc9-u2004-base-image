@@ -1,0 +1,4 @@
+[submodule "vendor-scripts/vscode-dev-containers"]
+	path = vendor-scripts/vscode-dev-containers
+	url = https://github.com/microsoft/vscode-dev-containers.git
+	branch = main
